@@ -40,7 +40,11 @@ function App() {
         websocket.current.close();
       }
       if (reconnectTimer.current) {
-        clearTimeout(reconnectTimer.current);
+        if (typeof reconnectTimer.current === 'number') {
+          clearTimeout(reconnectTimer.current);
+        } else {
+          clearInterval(reconnectTimer.current);
+        }
       }
     };
   }, [isUsernameSet, username, acceptedTerms]);
