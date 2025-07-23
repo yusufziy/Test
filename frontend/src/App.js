@@ -416,7 +416,7 @@ function App() {
             <button 
               type="submit" 
               className="send-btn"
-              disabled={!isConnected || !newMessage.trim()}
+              disabled={!newMessage.trim()}
             >
               Gönder
             </button>
