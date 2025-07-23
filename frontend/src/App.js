@@ -12,7 +12,6 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isConnected, setIsConnected] = useState(false);
-  const [theme, setTheme] = useState('black'); // 'black' or 'snow'
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
@@ -75,6 +74,12 @@ function App() {
     websocket.current.onclose = () => {
       setIsConnected(false);
       console.log('WebSocket disconnected');
+      // Auto-reconnect after 3 seconds
+      setTimeout(() => {
+        if (isUsernameSet && username) {
+          setupWebSocket();
+        }
+      }, 3000);
     };
 
     websocket.current.onerror = (error) => {
@@ -96,7 +101,8 @@ function App() {
       try {
         await axios.post(`${API}/messages`, {
           username: username,
-          content: newMessage
+          content: newMessage,
+          is_admin: isAdmin
         });
         setNewMessage('');
       } catch (error) {
@@ -140,15 +146,28 @@ function App() {
     });
   };
 
+  // Check for admin access via secret key combination
+  const handleKeyPress = (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+      setShowAdminLogin(true);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyPress);
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, []);
+
   // Username entry screen
   if (!isUsernameSet) {
     return (
-      <div className={`app ${theme}-theme`}>
-        {theme === 'snow' && <div className="snowfall"></div>}
+      <div className="app">
         <div className="username-container">
           <div className="username-card">
-            <h1>Private Chat</h1>
-            <p>Enter your username to join the chat</p>
+            <h1>ByLock Private Chat</h1>
+            <p>Enter your username to join the secure chat</p>
             <form onSubmit={handleUsernameSubmit}>
               <input
                 type="text"
@@ -171,11 +190,11 @@ function App() {
   // Admin login modal
   if (showAdminLogin) {
     return (
-      <div className={`app ${theme}-theme`}>
-        {theme === 'snow' && <div className="snowfall"></div>}
+      <div className="app">
         <div className="username-container">
           <div className="username-card">
-            <h2>Admin Login</h2>
+            <h2>Admin Access</h2>
+            <p>Enter admin password</p>
             <form onSubmit={handleAdminLogin}>
               <input
                 type="password"
@@ -204,31 +223,17 @@ function App() {
 
   // Main chat interface
   return (
-    <div className={`app ${theme}-theme`}>
-      {theme === 'snow' && <div className="snowfall"></div>}
-      
+    <div className="app">
       {/* Header */}
       <div className="chat-header">
-        <h1>Private Chat</h1>
+        <h1>ByLock Private Chat</h1>
         <div className="header-controls">
           <span className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
-            {isConnected ? '🟢' : '🔴'} {isConnected ? 'Connected' : 'Disconnected'}
+            {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
           </span>
-          <button 
-            onClick={() => setTheme(theme === 'black' ? 'snow' : 'black')}
-            className="theme-toggle"
-          >
-            {theme === 'black' ? '❄️' : '🌙'}
-          </button>
-          {!isAdmin && (
-            <button 
-              onClick={() => setShowAdminLogin(true)}
-              className="admin-btn"
-            >
-              Admin
-            </button>
+          {isAdmin && (
+            <span className="admin-badge">ADMIN MODE</span>
           )}
-          {isAdmin && <span className="admin-badge">Admin Mode</span>}
         </div>
       </div>
 
@@ -236,9 +241,12 @@ function App() {
       <div className="chat-container">
         <div className="messages-container">
           {messages.map((message) => (
-            <div key={message.id} className="message">
+            <div key={message.id} className={`message ${message.is_admin ? 'admin-message' : ''}`}>
               <div className="message-header">
-                <span className="username">{message.username}</span>
+                <span className="username">
+                  {message.username}
+                  {message.is_admin && <span className="admin-tag">ADMIN</span>}
+                </span>
                 <span className="timestamp">{formatTime(message.timestamp)}</span>
                 {isAdmin && (
                   <button 
@@ -274,6 +282,11 @@ function App() {
               Send
             </button>
           </form>
+          {isAdmin && (
+            <div className="admin-info">
+              <small>🔑 Admin Mode: Your messages are tagged as ADMIN</small>
+            </div>
+          )}
         </div>
       </div>
     </div>

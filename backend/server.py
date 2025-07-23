@@ -52,7 +52,8 @@ class ConnectionManager:
                 await connection.send_text(message)
             except:
                 # Remove dead connections
-                self.active_connections.remove(connection)
+                if connection in self.active_connections:
+                    self.active_connections.remove(connection)
 
 manager = ConnectionManager()
 
@@ -67,6 +68,7 @@ class Message(BaseModel):
 class MessageCreate(BaseModel):
     username: str
     content: str
+    is_admin: bool = False
 
 class Admin(BaseModel):
     username: str
@@ -75,7 +77,7 @@ class Admin(BaseModel):
 # API Routes
 @api_router.get("/")
 async def root():
-    return {"message": "Private Chat API Ready"}
+    return {"message": "ByLock Private Chat API Ready"}
 
 @api_router.post("/messages", response_model=Message)
 async def create_message(message_data: MessageCreate):
@@ -104,8 +106,8 @@ async def get_messages(limit: int = 50):
 
 @api_router.post("/admin/login")
 async def admin_login(admin: Admin):
-    """Simple admin login - in real app use proper auth"""
-    if admin.username == "admin" and admin.password == "admin123":
+    """Admin login with bylockgorkem password"""
+    if admin.username == "admin" and admin.password == "bylockgorkem":
         return {"success": True, "token": "admin_token_123"}
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
