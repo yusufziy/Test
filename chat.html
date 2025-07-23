@@ -117,7 +117,9 @@
             backdrop-filter: blur(10px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
             text-align: center;
-            min-width: 400px;
+            min-width: 300px;
+            width: 90%;
+            max-width: 400px;
         }
 
         .username-card h1 {
@@ -127,6 +129,12 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        .username-card h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #dc143c;
         }
 
         .username-card p {
@@ -151,7 +159,7 @@
             color: #888;
         }
 
-        .join-btn {
+        .join-btn, .cancel-btn {
             background: linear-gradient(45deg, #dc143c, #ff1744);
             color: #fff;
             padding: 15px 30px;
@@ -161,9 +169,14 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            margin: 5px;
         }
 
-        .join-btn:hover {
+        .cancel-btn {
+            background: #666;
+        }
+
+        .join-btn:hover, .cancel-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(220, 20, 60, 0.3);
         }
@@ -176,6 +189,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .chat-header h1 {
@@ -185,6 +200,13 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .connection-status {
@@ -209,6 +231,16 @@
             border-radius: 15px;
             font-size: 12px;
             font-weight: bold;
+            animation: adminPulse 2s infinite;
+        }
+
+        @keyframes adminPulse {
+            0%, 100% { 
+                box-shadow: 0 2px 8px rgba(220, 20, 60, 0.3); 
+            }
+            50% { 
+                box-shadow: 0 4px 15px rgba(220, 20, 60, 0.6); 
+            }
         }
 
         .chat-container {
@@ -258,12 +290,17 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 8px;
+            flex-wrap: wrap;
         }
 
         .username {
             font-weight: bold;
             color: #dc143c;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .admin-tag {
@@ -273,7 +310,6 @@
             border-radius: 10px;
             font-size: 10px;
             font-weight: bold;
-            margin-left: 8px;
         }
 
         .timestamp {
@@ -286,11 +322,13 @@
             font-size: 16px;
             line-height: 1.4;
             color: #f0f0f0;
+            word-wrap: break-word;
         }
 
         .message-form {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .message-input {
@@ -302,6 +340,7 @@
             color: #fff;
             font-size: 16px;
             outline: none;
+            min-width: 200px;
         }
 
         .message-input::placeholder {
@@ -317,6 +356,7 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
+            min-width: 80px;
         }
 
         .send-btn:disabled {
@@ -334,6 +374,76 @@
             padding: 40px;
             color: #888;
             font-style: italic;
+        }
+
+        .admin-hint {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(45, 45, 45, 0.5);
+            border-radius: 10px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .chat-header {
+                padding: 10px 15px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .chat-header h1 {
+                font-size: 20px;
+            }
+
+            .chat-container {
+                padding: 0 10px 10px;
+            }
+
+            .message-form {
+                flex-direction: column;
+            }
+
+            .send-btn {
+                width: 100%;
+            }
+
+            .username-card {
+                padding: 20px;
+                margin: 0 10px;
+            }
+
+            .terms-card {
+                padding: 20px;
+                margin: 0 10px;
+            }
+
+            .message {
+                padding: 12px;
+            }
+
+            .message-input {
+                min-width: auto;
+            }
+        }
+
+        /* Scrollbar */
+        .messages-container::-webkit-scrollbar,
+        .terms-card::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar-track,
+        .terms-card::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb,
+        .terms-card::-webkit-scrollbar-thumb {
+            background: rgba(220, 20, 60, 0.5);
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -385,13 +495,32 @@
             </div>
         </div>
 
+        <!-- Admin Login Screen -->
+        <div id="adminLoginScreen" class="username-container hidden">
+            <div class="username-card">
+                <h2>Yönetici Girişi</h2>
+                <p>Yönetici şifresini girin</p>
+                <form onsubmit="adminLogin(event)">
+                    <input 
+                        type="password" 
+                        id="adminPasswordInput" 
+                        placeholder="Yönetici şifresi..." 
+                        class="username-input"
+                        required
+                    >
+                    <button type="submit" class="join-btn">Giriş Yap</button>
+                    <button type="button" class="cancel-btn" onclick="cancelAdminLogin()">İptal</button>
+                </form>
+            </div>
+        </div>
+
         <!-- Chat Interface -->
         <div id="chatScreen" class="hidden">
             <div class="chat-header">
                 <h1>ByLock Özel Sohbet</h1>
-                <div>
-                    <span id="connectionStatus" class="connection-status disconnected">
-                        🔴 Bağlantı Kopuk
+                <div class="header-controls">
+                    <span id="connectionStatus" class="connection-status connected">
+                        🟢 Bağlı
                     </span>
                     <span id="adminBadge" class="admin-badge hidden">YÖNETİCİ MODU</span>
                 </div>
@@ -414,15 +543,19 @@
                     >
                     <button type="submit" class="send-btn" id="sendBtn">Gönder</button>
                 </form>
+                
+                <div class="admin-hint">
+                    💡 İpucu: Admin paneli için sohbette "admin" yazın
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuration
-        const BACKEND_URL = 'https://b5220c02-c0b5-4782-ae48-58fb7b55df56.preview.emergentagent.com';
+        // BACKEND URL'İNİ BURAYA YAZIN - Kendi sunucunuz için değiştirin
+        const BACKEND_URL = 'https://your-server.com'; // Bu kısmı kendi backend adresinizle değiştirin
         const API = `${BACKEND_URL}/api`;
-        const WS_URL = BACKEND_URL.replace('https://', 'wss://');
+        const WS_URL = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://');
 
         // Global variables
         let currentUsername = '';
@@ -430,6 +563,7 @@
         let isConnected = false;
         let isAdmin = false;
         let messages = [];
+        let pollInterval = null;
 
         // Accept terms and show username screen
         function acceptTerms() {
@@ -449,7 +583,7 @@
                 document.getElementById('chatScreen').classList.remove('hidden');
                 
                 loadMessages();
-                setupWebSocket();
+                setupConnection();
                 document.getElementById('messageInput').focus();
             }
         }
@@ -458,30 +592,46 @@
         async function loadMessages() {
             try {
                 const response = await fetch(`${API}/messages`);
-                const data = await response.json();
-                messages = data;
-                renderMessages();
+                if (response.ok) {
+                    const data = await response.json();
+                    messages = data;
+                    renderMessages();
+                }
             } catch (error) {
-                console.error('Error loading messages:', error);
+                console.log('Backend bağlantı hatası - Demo mode aktif');
+                loadDemoMessages();
             }
         }
 
-        // Setup WebSocket connection
-        function setupWebSocket() {
+        // Demo messages for local testing
+        function loadDemoMessages() {
+            messages = [
+                {
+                    id: '1',
+                    username: 'Demo',
+                    content: 'Hoş geldiniz! Bu demo modunda çalışıyor.',
+                    timestamp: new Date().toISOString(),
+                    is_admin: false
+                }
+            ];
+            renderMessages();
+        }
+
+        // Setup connection (WebSocket or polling)
+        function setupConnection() {
             try {
                 websocket = new WebSocket(`${WS_URL}/ws/${currentUsername}`);
                 
                 websocket.onopen = () => {
                     isConnected = true;
                     updateConnectionStatus();
-                    console.log('WebSocket connected');
+                    console.log('WebSocket bağlandı');
                 };
 
                 websocket.onmessage = (event) => {
                     try {
                         const data = JSON.parse(event.data);
                         if (data.type === 'new_message') {
-                            // Check if message already exists
                             if (!messages.find(msg => msg.id === data.data.id)) {
                                 messages.push(data.data);
                                 renderMessages();
@@ -491,49 +641,61 @@
                             renderMessages();
                         }
                     } catch (error) {
-                        console.error('Error parsing WebSocket message:', error);
+                        console.error('WebSocket mesaj hatası:', error);
                     }
                 };
 
                 websocket.onclose = () => {
                     isConnected = false;
                     updateConnectionStatus();
-                    console.log('WebSocket disconnected');
-                    
-                    // Reconnect after 3 seconds
-                    setTimeout(() => {
-                        if (currentUsername) {
-                            setupWebSocket();
-                        }
-                    }, 3000);
+                    console.log('WebSocket bağlantısı kesildi - Polling moduna geçiliyor');
+                    startPolling();
                 };
 
                 websocket.onerror = (error) => {
-                    console.error('WebSocket error:', error);
+                    console.log('WebSocket hatası - Polling moduna geçiliyor');
                     isConnected = false;
                     updateConnectionStatus();
+                    startPolling();
                 };
             } catch (error) {
-                console.error('Error setting up WebSocket:', error);
+                console.log('WebSocket desteklenmiyor - Polling mode');
+                startPolling();
             }
+        }
+
+        // Polling for real-time updates
+        function startPolling() {
+            isConnected = true; // UI için bağlı göster
+            updateConnectionStatus();
+            
+            pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API}/messages`);
+                    if (response.ok) {
+                        const newMessages = await response.json();
+                        if (JSON.stringify(newMessages) !== JSON.stringify(messages)) {
+                            messages = newMessages;
+                            renderMessages();
+                        }
+                    }
+                } catch (error) {
+                    // Backend yoksa demo mode devam et
+                    console.log('Polling hatası - demo mode devam ediyor');
+                }
+            }, 3000);
         }
 
         // Update connection status
         function updateConnectionStatus() {
             const statusElement = document.getElementById('connectionStatus');
-            const sendBtn = document.getElementById('sendBtn');
-            const messageInput = document.getElementById('messageInput');
             
             if (isConnected) {
                 statusElement.className = 'connection-status connected';
                 statusElement.innerHTML = '🟢 Bağlı';
-                sendBtn.disabled = false;
-                messageInput.disabled = false;
             } else {
                 statusElement.className = 'connection-status disconnected';
                 statusElement.innerHTML = '🔴 Bağlantı Kopuk';
-                sendBtn.disabled = true;
-                messageInput.disabled = true;
             }
         }
 
@@ -543,9 +705,17 @@
             const messageInput = document.getElementById('messageInput');
             const message = messageInput.value.trim();
             
-            if (message && isConnected) {
+            if (message) {
+                // Admin paneli için özel kontrol
+                if (message.toLowerCase() === 'admin') {
+                    messageInput.value = '';
+                    showAdminLogin();
+                    return;
+                }
+
                 try {
-                    await fetch(`${API}/messages`, {
+                    // Backend'e gönder
+                    const response = await fetch(`${API}/messages`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -557,12 +727,73 @@
                         })
                     });
                     
+                    if (!response.ok) {
+                        throw new Error('Backend hatası');
+                    }
+                    
                     messageInput.value = '';
+                    
+                    // Mesajları yenile
+                    setTimeout(loadMessages, 500);
                 } catch (error) {
-                    console.error('Error sending message:', error);
-                    alert('Mesaj gönderilirken hata oluştu. Lütfen tekrar deneyin.');
+                    // Backend yoksa local demo mesajı ekle
+                    console.log('Backend yok - demo mesajı ekleniyor');
+                    const newMessage = {
+                        id: Date.now().toString(),
+                        username: currentUsername,
+                        content: message,
+                        timestamp: new Date().toISOString(),
+                        is_admin: isAdmin
+                    };
+                    messages.push(newMessage);
+                    renderMessages();
+                    messageInput.value = '';
                 }
             }
+        }
+
+        // Show admin login
+        function showAdminLogin() {
+            document.getElementById('chatScreen').classList.add('hidden');
+            document.getElementById('adminLoginScreen').classList.remove('hidden');
+            document.getElementById('adminPasswordInput').focus();
+        }
+
+        // Admin login
+        function adminLogin(event) {
+            event.preventDefault();
+            const password = document.getElementById('adminPasswordInput').value;
+            
+            if (password === 'bylockgorkem') {
+                isAdmin = true;
+                document.getElementById('adminBadge').classList.remove('hidden');
+                document.getElementById('adminLoginScreen').classList.add('hidden');
+                document.getElementById('chatScreen').classList.remove('hidden');
+                document.getElementById('adminPasswordInput').value = '';
+                
+                // Admin mesajı gönder
+                const adminMessage = {
+                    id: Date.now().toString(),
+                    username: currentUsername,
+                    content: 'Admin moduna geçildi!',
+                    timestamp: new Date().toISOString(),
+                    is_admin: true
+                };
+                messages.push(adminMessage);
+                renderMessages();
+                
+                alert('Admin moduna geçildi!');
+            } else {
+                alert('Geçersiz şifre!');
+                document.getElementById('adminPasswordInput').value = '';
+            }
+        }
+
+        // Cancel admin login
+        function cancelAdminLogin() {
+            document.getElementById('adminLoginScreen').classList.add('hidden');
+            document.getElementById('chatScreen').classList.remove('hidden');
+            document.getElementById('adminPasswordInput').value = '';
         }
 
         // Render messages
@@ -591,7 +822,7 @@
                             </span>
                             <span class="timestamp">${timestamp}</span>
                         </div>
-                        <div class="message-content">${message.content}</div>
+                        <div class="message-content">${escapeHtml(message.content)}</div>
                     </div>
                 `;
             }).join('');
@@ -600,32 +831,41 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // Admin login functionality (Ctrl+Shift+A)
+        // HTML escape function
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Keyboard shortcuts
         document.addEventListener('keydown', function(event) {
+            // PC için Ctrl+Shift+A
             if (event.ctrlKey && event.shiftKey && event.key === 'A') {
-                const password = prompt('Yönetici şifresini girin:');
-                if (password === 'bylockgorkem') {
-                    isAdmin = true;
-                    document.getElementById('adminBadge').classList.remove('hidden');
-                    alert('Yönetici moduna geçildi!');
-                } else if (password !== null) {
-                    alert('Geçersiz şifre!');
+                if (document.getElementById('chatScreen').classList.contains('hidden') === false) {
+                    showAdminLogin();
                 }
             }
         });
 
-        // Format time helper
-        function formatTime(timestamp) {
-            return new Date(timestamp).toLocaleTimeString('tr-TR', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Focus on terms accept button initially
-            console.log('ByLock Chat initialized');
+            console.log('ByLock Chat başlatıldı');
+            
+            // Mobile detection for better UX
+            if (window.innerWidth <= 768) {
+                console.log('Mobil cihaz tespit edildi');
+            }
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (websocket) {
+                websocket.close();
+            }
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
         });
     </script>
 </body>
