@@ -1,52 +1,281 @@
-import { useEffect } from "react";
-import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect, useRef } from 'react';
+import './App.css';
+import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+const WS_URL = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://');
 
-const Home = () => {
-  const helloWorldApi = async () => {
+function App() {
+  const [username, setUsername] = useState('');
+  const [isUsernameSet, setIsUsernameSet] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+  const [theme, setTheme] = useState('black'); // 'black' or 'snow'
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  
+  const websocket = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  // Load messages on component mount
+  useEffect(() => {
+    loadMessages();
+  }, []);
+
+  // Setup WebSocket connection when username is set
+  useEffect(() => {
+    if (isUsernameSet && username) {
+      setupWebSocket();
+    }
+    return () => {
+      if (websocket.current) {
+        websocket.current.close();
+      }
+    };
+  }, [isUsernameSet, username]);
+
+  // Auto scroll to bottom
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const loadMessages = async () => {
     try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+      const response = await axios.get(`${API}/messages`);
+      setMessages(response.data);
+    } catch (error) {
+      console.error('Error loading messages:', error);
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  const setupWebSocket = () => {
+    websocket.current = new WebSocket(`${WS_URL}/ws/${username}`);
+    
+    websocket.current.onopen = () => {
+      setIsConnected(true);
+      console.log('WebSocket connected');
+    };
 
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+    websocket.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'new_message') {
+        setMessages(prev => [...prev, data.data]);
+      } else if (data.type === 'message_deleted') {
+        setMessages(prev => prev.filter(msg => msg.id !== data.data.message_id));
+      }
+    };
 
-function App() {
+    websocket.current.onclose = () => {
+      setIsConnected(false);
+      console.log('WebSocket disconnected');
+    };
+
+    websocket.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setIsConnected(false);
+    };
+  };
+
+  const handleUsernameSubmit = (e) => {
+    e.preventDefault();
+    if (username.trim()) {
+      setIsUsernameSet(true);
+    }
+  };
+
+  const handleMessageSubmit = async (e) => {
+    e.preventDefault();
+    if (newMessage.trim()) {
+      try {
+        await axios.post(`${API}/messages`, {
+          username: username,
+          content: newMessage
+        });
+        setNewMessage('');
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
+    }
+  };
+
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(`${API}/admin/login`, {
+        username: 'admin',
+        password: adminPassword
+      });
+      if (response.data.success) {
+        setIsAdmin(true);
+        setShowAdminLogin(false);
+        setAdminPassword('');
+      }
+    } catch (error) {
+      alert('Invalid admin credentials');
+      console.error('Admin login error:', error);
+    }
+  };
+
+  const deleteMessage = async (messageId) => {
+    if (window.confirm('Are you sure you want to delete this message?')) {
+      try {
+        await axios.delete(`${API}/admin/messages/${messageId}`);
+      } catch (error) {
+        console.error('Error deleting message:', error);
+      }
+    }
+  };
+
+  const formatTime = (timestamp) => {
+    return new Date(timestamp).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Username entry screen
+  if (!isUsernameSet) {
+    return (
+      <div className={`app ${theme}-theme`}>
+        {theme === 'snow' && <div className="snowfall"></div>}
+        <div className="username-container">
+          <div className="username-card">
+            <h1>Private Chat</h1>
+            <p>Enter your username to join the chat</p>
+            <form onSubmit={handleUsernameSubmit}>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter username..."
+                className="username-input"
+                autoFocus
+              />
+              <button type="submit" className="join-btn">
+                Join Chat
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin login modal
+  if (showAdminLogin) {
+    return (
+      <div className={`app ${theme}-theme`}>
+        {theme === 'snow' && <div className="snowfall"></div>}
+        <div className="username-container">
+          <div className="username-card">
+            <h2>Admin Login</h2>
+            <form onSubmit={handleAdminLogin}>
+              <input
+                type="password"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="Admin password..."
+                className="username-input"
+                autoFocus
+              />
+              <button type="submit" className="join-btn">
+                Login
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setShowAdminLogin(false)}
+                className="cancel-btn"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main chat interface
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+    <div className={`app ${theme}-theme`}>
+      {theme === 'snow' && <div className="snowfall"></div>}
+      
+      {/* Header */}
+      <div className="chat-header">
+        <h1>Private Chat</h1>
+        <div className="header-controls">
+          <span className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
+            {isConnected ? '🟢' : '🔴'} {isConnected ? 'Connected' : 'Disconnected'}
+          </span>
+          <button 
+            onClick={() => setTheme(theme === 'black' ? 'snow' : 'black')}
+            className="theme-toggle"
+          >
+            {theme === 'black' ? '❄️' : '🌙'}
+          </button>
+          {!isAdmin && (
+            <button 
+              onClick={() => setShowAdminLogin(true)}
+              className="admin-btn"
+            >
+              Admin
+            </button>
+          )}
+          {isAdmin && <span className="admin-badge">Admin Mode</span>}
+        </div>
+      </div>
+
+      {/* Chat Messages */}
+      <div className="chat-container">
+        <div className="messages-container">
+          {messages.map((message) => (
+            <div key={message.id} className="message">
+              <div className="message-header">
+                <span className="username">{message.username}</span>
+                <span className="timestamp">{formatTime(message.timestamp)}</span>
+                {isAdmin && (
+                  <button 
+                    onClick={() => deleteMessage(message.id)}
+                    className="delete-btn"
+                  >
+                    🗑️
+                  </button>
+                )}
+              </div>
+              <div className="message-content">{message.content}</div>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Message Input */}
+        <div className="input-container">
+          <form onSubmit={handleMessageSubmit} className="message-form">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type your message..."
+              className="message-input"
+              disabled={!isConnected}
+            />
+            <button 
+              type="submit" 
+              className="send-btn"
+              disabled={!isConnected || !newMessage.trim()}
+            >
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
