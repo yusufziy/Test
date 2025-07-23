@@ -706,10 +706,24 @@
             const message = messageInput.value.trim();
             
             if (message) {
-                // Admin paneli için özel kontrol
-                if (message.toLowerCase() === 'admin') {
+                // Admin moduna geçiş için özel kontrol
+                if (message.toLowerCase() === 'bylockgorkem') {
                     messageInput.value = '';
-                    showAdminLogin();
+                    isAdmin = true;
+                    document.getElementById('adminBadge').classList.remove('hidden');
+                    
+                    // Admin mesajı gönder
+                    const adminMessage = {
+                        id: Date.now().toString(),
+                        username: currentUsername,
+                        content: '🔐 Admin moduna geçildi!',
+                        timestamp: new Date().toISOString(),
+                        is_admin: true
+                    };
+                    messages.push(adminMessage);
+                    renderMessages();
+                    
+                    alert('Admin moduna geçildiniz! 🔥');
                     return;
                 }
 
