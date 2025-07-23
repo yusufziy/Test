@@ -67,8 +67,10 @@ function App() {
 
   const setupWebSocket = () => {
     try {
-      console.log(`Connecting to WebSocket: ${WS_URL}/ws/${username}`);
-      websocket.current = new WebSocket(`${WS_URL}/ws/${username}`);
+      // Try WebSocket first, then fallback to polling
+      const wsUrl = `${WS_URL}/ws/${username}`;
+      console.log(`Connecting to WebSocket: ${wsUrl}`);
+      websocket.current = new WebSocket(wsUrl);
       
       websocket.current.onopen = () => {
         setIsConnected(true);
@@ -100,14 +102,20 @@ function App() {
         setIsConnected(false);
         console.log('WebSocket disconnected:', event.code, event.reason);
         
-        // Auto-reconnect with exponential backoff
-        if (connectionRetries < 5) {
-          const delay = Math.pow(2, connectionRetries) * 1000; // 1s, 2s, 4s, 8s, 16s
+        // If WebSocket fails, use polling as fallback
+        if (connectionRetries === 0) {
+          console.log('WebSocket failed, switching to polling mode...');
+          startPolling();
+        } else if (connectionRetries < 3) {
+          const delay = Math.pow(2, connectionRetries) * 1000;
           console.log(`Reconnecting in ${delay}ms...`);
           reconnectTimer.current = setTimeout(() => {
             setConnectionRetries(prev => prev + 1);
             setupWebSocket();
           }, delay);
+        } else {
+          console.log('Max retries reached, switching to polling...');
+          startPolling();
         }
       };
 
@@ -118,7 +126,40 @@ function App() {
     } catch (error) {
       console.error('Error setting up WebSocket:', error);
       setIsConnected(false);
+      startPolling();
     }
+  };
+
+  // Polling fallback for real-time updates
+  const startPolling = () => {
+    console.log('Starting polling mode for real-time updates...');
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await axios.get(`${API}/messages`);
+        const newMessages = response.data;
+        
+        setMessages(prevMessages => {
+          // Only update if there are new messages
+          if (newMessages.length !== prevMessages.length || 
+              JSON.stringify(newMessages) !== JSON.stringify(prevMessages)) {
+            return newMessages;
+          }
+          return prevMessages;
+        });
+        
+        // Simulate connection for UI
+        setIsConnected(true);
+      } catch (error) {
+        console.error('Polling error:', error);
+        setIsConnected(false);
+      }
+    }, 2000); // Poll every 2 seconds
+
+    // Store interval ID to clear it later
+    if (reconnectTimer.current) {
+      clearInterval(reconnectTimer.current);
+    }
+    reconnectTimer.current = pollInterval;
   };
 
   const handleTermsAccept = () => {
