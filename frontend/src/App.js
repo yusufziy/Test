@@ -137,21 +137,25 @@ function App() {
   // Polling fallback for real-time updates
   const startPolling = () => {
     console.log('Starting polling mode for real-time updates...');
+    
+    // Immediately set connected status for polling mode
+    setIsConnected(true);
+    
     const pollInterval = setInterval(async () => {
       try {
         const response = await axios.get(`${API}/messages`);
         const newMessages = response.data;
         
         setMessages(prevMessages => {
-          // Only update if there are new messages
-          if (newMessages.length !== prevMessages.length || 
-              JSON.stringify(newMessages) !== JSON.stringify(prevMessages)) {
+          // Always update to ensure fresh data
+          if (JSON.stringify(newMessages) !== JSON.stringify(prevMessages)) {
+            console.log('Messages updated via polling:', newMessages.length);
             return newMessages;
           }
           return prevMessages;
         });
         
-        // Simulate connection for UI
+        // Keep connection status as connected while polling works
         setIsConnected(true);
       } catch (error) {
         console.error('Polling error:', error);
