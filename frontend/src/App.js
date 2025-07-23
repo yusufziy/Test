@@ -411,7 +411,6 @@ function App() {
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Mesajınızı yazın..."
               className="message-input"
-              disabled={!isConnected}
             />
             <button 
               type="submit" 
