@@ -179,7 +179,7 @@ function App() {
 
   const handleMessageSubmit = async (e) => {
     e.preventDefault();
-    if (newMessage.trim() && isConnected) {
+    if (newMessage.trim()) {
       try {
         console.log('Sending message:', newMessage);
         const response = await axios.post(`${API}/messages`, {
@@ -189,12 +189,13 @@ function App() {
         });
         console.log('Message sent successfully:', response.data);
         setNewMessage('');
+        
+        // Immediately reload messages after sending
+        setTimeout(loadMessages, 500);
       } catch (error) {
         console.error('Error sending message:', error);
         alert('Mesaj gönderilirken hata oluştu. Lütfen tekrar deneyin.');
       }
-    } else if (!isConnected) {
-      alert('Bağlantı kopuk. Lütfen bekleyin...');
     }
   };
 
