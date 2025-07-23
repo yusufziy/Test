@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ByLock Özel Sohbet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            height: 100vh;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        .app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Terms Screen */
+        .terms-container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .terms-card {
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid #333;
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .terms-card h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+            background: linear-gradient(45deg, #dc143c, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .terms-card h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #dc143c;
+        }
+
+        .terms-content {
+            margin-bottom: 30px;
+            line-height: 1.6;
+            text-align: left;
+        }
+
+        .terms-content h3 {
+            color: #dc143c;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .terms-content p {
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .accept-btn {
+            background: linear-gradient(45deg, #dc143c, #ff1744);
+            color: #fff;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .accept-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(220, 20, 60, 0.3);
+        }
+
+        /* Username Screen */
+        .username-container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .username-card {
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid #333;
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            min-width: 400px;
+        }
+
+        .username-card h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #dc143c, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .username-card p {
+            opacity: 0.8;
+            margin-bottom: 30px;
+            color: #ccc;
+        }
+
+        .username-input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 25px;
+            border: 1px solid #444;
+            background: #2d2d2d;
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        .username-input::placeholder {
+            color: #888;
+        }
+
+        .join-btn {
+            background: linear-gradient(45deg, #dc143c, #ff1744);
+            color: #fff;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .join-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(220, 20, 60, 0.3);
+        }
+
+        /* Chat Interface */
+        .chat-header {
+            background: linear-gradient(90deg, #1a1a1a, #2d2d2d);
+            border-bottom: 1px solid #333;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #dc143c, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .connection-status {
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            background: rgba(45, 45, 45, 0.8);
+        }
+
+        .connection-status.connected {
+            color: #4ade80;
+        }
+
+        .connection-status.disconnected {
+            color: #ef4444;
+        }
+
+        .admin-badge {
+            background: linear-gradient(45deg, #dc143c, #ff1744);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 20px 20px;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            background: rgba(26, 26, 26, 0.9);
+            border: 1px solid #333;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            background: rgba(45, 45, 45, 0.8);
+            border-left: 3px solid #666;
+            animation: messageSlide 0.3s ease-out;
+        }
+
+        .admin-message {
+            background: rgba(70, 20, 20, 0.8);
+            border-left: 3px solid #dc143c;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .username {
+            font-weight: bold;
+            color: #dc143c;
+            font-size: 14px;
+        }
+
+        .admin-tag {
+            background: linear-gradient(45deg, #dc143c, #ff1744);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .timestamp {
+            font-size: 12px;
+            opacity: 0.6;
+            color: #999;
+        }
+
+        .message-content {
+            font-size: 16px;
+            line-height: 1.4;
+            color: #f0f0f0;
+        }
+
+        .message-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 15px 20px;
+            border-radius: 25px;
+            border: 1px solid #444;
+            background: #2d2d2d;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .message-input::placeholder {
+            color: #888;
+        }
+
+        .send-btn {
+            background: linear-gradient(45deg, #dc143c, #ff1744);
+            color: #fff;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #666;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .no-messages {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Terms Screen -->
+        <div id="termsScreen" class="terms-container">
+            <div class="terms-card">
+                <h1>ByLock Özel Sohbet</h1>
+                <h2>Kullanım Şartları ve Gizlilik Sözleşmesi</h2>
+                <div class="terms-content">
+                    <h3>1. Kullanım Şartları</h3>
+                    <p>• Bu platform özel ve güvenli mesajlaşma için tasarlanmıştır.</p>
+                    <p>• Tüm mesajlar şifrelenir ve güvenli bir şekilde saklanır.</p>
+                    <p>• Yasa dışı, zararlı veya rahatsız edici içerik paylaşmak yasaktır.</p>
+                    <p>• Platform yöneticileri güvenlik amacıyla mesajları inceleyebilir.</p>
+                    
+                    <h3>2. Gizlilik Politikası</h3>
+                    <p>• Kişisel bilgileriniz üçüncü şahıslarla paylaşılmaz.</p>
+                    <p>• Mesajlarınız sadece güvenlik ve denetim amacıyla erişilebilir.</p>
+                    <p>• IP adresi ve bağlantı logları güvenlik amacıyla tutulur.</p>
+                    
+                    <h3>3. Sorumluluklar</h3>
+                    <p>• Paylaştığınız içerikten tamamen siz sorumlusunuz.</p>
+                    <p>• Platform yönetimi uygunsuz davranışlar için hesap kapatma hakkını saklı tutar.</p>
+                    <p>• Teknik arızalardan dolayı oluşabilecek kayıplardan sorumluluk kabul edilmez.</p>
+                </div>
+                <button class="accept-btn" onclick="acceptTerms()">
+                    Kabul Ediyorum ve Sohbete Devam Et
+                </button>
+            </div>
+        </div>
+
+        <!-- Username Screen -->
+        <div id="usernameScreen" class="username-container hidden">
+            <div class="username-card">
+                <h1>ByLock Özel Sohbet</h1>
+                <p>Güvenli sohbete katılmak için kullanıcı adınızı girin</p>
+                <form onsubmit="setUsername(event)">
+                    <input 
+                        type="text" 
+                        id="usernameInput" 
+                        placeholder="Kullanıcı adınızı girin..." 
+                        class="username-input"
+                        required
+                    >
+                    <button type="submit" class="join-btn">Sohbete Katıl</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div id="chatScreen" class="hidden">
+            <div class="chat-header">
+                <h1>ByLock Özel Sohbet</h1>
+                <div>
+                    <span id="connectionStatus" class="connection-status disconnected">
+                        🔴 Bağlantı Kopuk
+                    </span>
+                    <span id="adminBadge" class="admin-badge hidden">YÖNETİCİ MODU</span>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <div id="messagesContainer" class="messages-container">
+                    <div class="no-messages">
+                        Henüz mesaj yok. İlk mesajı siz gönderin!
+                    </div>
+                </div>
+
+                <form class="message-form" onsubmit="sendMessage(event)">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        placeholder="Mesajınızı yazın..." 
+                        class="message-input"
+                        required
+                    >
+                    <button type="submit" class="send-btn" id="sendBtn">Gönder</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const BACKEND_URL = 'https://b5220c02-c0b5-4782-ae48-58fb7b55df56.preview.emergentagent.com';
+        const API = `${BACKEND_URL}/api`;
+        const WS_URL = BACKEND_URL.replace('https://', 'wss://');
+
+        // Global variables
+        let currentUsername = '';
+        let websocket = null;
+        let isConnected = false;
+        let isAdmin = false;
+        let messages = [];
+
+        // Accept terms and show username screen
+        function acceptTerms() {
+            document.getElementById('termsScreen').classList.add('hidden');
+            document.getElementById('usernameScreen').classList.remove('hidden');
+            document.getElementById('usernameInput').focus();
+        }
+
+        // Set username and start chat
+        function setUsername(event) {
+            event.preventDefault();
+            const username = document.getElementById('usernameInput').value.trim();
+            
+            if (username) {
+                currentUsername = username;
+                document.getElementById('usernameScreen').classList.add('hidden');
+                document.getElementById('chatScreen').classList.remove('hidden');
+                
+                loadMessages();
+                setupWebSocket();
+                document.getElementById('messageInput').focus();
+            }
+        }
+
+        // Load existing messages
+        async function loadMessages() {
+            try {
+                const response = await fetch(`${API}/messages`);
+                const data = await response.json();
+                messages = data;
+                renderMessages();
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        // Setup WebSocket connection
+        function setupWebSocket() {
+            try {
+                websocket = new WebSocket(`${WS_URL}/ws/${currentUsername}`);
+                
+                websocket.onopen = () => {
+                    isConnected = true;
+                    updateConnectionStatus();
+                    console.log('WebSocket connected');
+                };
+
+                websocket.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.type === 'new_message') {
+                            // Check if message already exists
+                            if (!messages.find(msg => msg.id === data.data.id)) {
+                                messages.push(data.data);
+                                renderMessages();
+                            }
+                        } else if (data.type === 'message_deleted') {
+                            messages = messages.filter(msg => msg.id !== data.data.message_id);
+                            renderMessages();
+                        }
+                    } catch (error) {
+                        console.error('Error parsing WebSocket message:', error);
+                    }
+                };
+
+                websocket.onclose = () => {
+                    isConnected = false;
+                    updateConnectionStatus();
+                    console.log('WebSocket disconnected');
+                    
+                    // Reconnect after 3 seconds
+                    setTimeout(() => {
+                        if (currentUsername) {
+                            setupWebSocket();
+                        }
+                    }, 3000);
+                };
+
+                websocket.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    isConnected = false;
+                    updateConnectionStatus();
+                };
+            } catch (error) {
+                console.error('Error setting up WebSocket:', error);
+            }
+        }
+
+        // Update connection status
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connectionStatus');
+            const sendBtn = document.getElementById('sendBtn');
+            const messageInput = document.getElementById('messageInput');
+            
+            if (isConnected) {
+                statusElement.className = 'connection-status connected';
+                statusElement.innerHTML = '🟢 Bağlı';
+                sendBtn.disabled = false;
+                messageInput.disabled = false;
+            } else {
+                statusElement.className = 'connection-status disconnected';
+                statusElement.innerHTML = '🔴 Bağlantı Kopuk';
+                sendBtn.disabled = true;
+                messageInput.disabled = true;
+            }
+        }
+
+        // Send message
+        async function sendMessage(event) {
+            event.preventDefault();
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (message && isConnected) {
+                try {
+                    await fetch(`${API}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username: currentUsername,
+                            content: message,
+                            is_admin: isAdmin
+                        })
+                    });
+                    
+                    messageInput.value = '';
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    alert('Mesaj gönderilirken hata oluştu. Lütfen tekrar deneyin.');
+                }
+            }
+        }
+
+        // Render messages
+        function renderMessages() {
+            const container = document.getElementById('messagesContainer');
+            
+            if (messages.length === 0) {
+                container.innerHTML = '<div class="no-messages">Henüz mesaj yok. İlk mesajı siz gönderin!</div>';
+                return;
+            }
+            
+            const messagesHTML = messages.map(message => {
+                const timestamp = new Date(message.timestamp).toLocaleTimeString('tr-TR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const adminTag = message.is_admin ? '<span class="admin-tag">YÖNETİCİ</span>' : '';
+                const messageClass = message.is_admin ? 'message admin-message' : 'message';
+                
+                return `
+                    <div class="${messageClass}">
+                        <div class="message-header">
+                            <span class="username">
+                                ${message.username}${adminTag}
+                            </span>
+                            <span class="timestamp">${timestamp}</span>
+                        </div>
+                        <div class="message-content">${message.content}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = messagesHTML;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Admin login functionality (Ctrl+Shift+A)
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.shiftKey && event.key === 'A') {
+                const password = prompt('Yönetici şifresini girin:');
+                if (password === 'bylockgorkem') {
+                    isAdmin = true;
+                    document.getElementById('adminBadge').classList.remove('hidden');
+                    alert('Yönetici moduna geçildi!');
+                } else if (password !== null) {
+                    alert('Geçersiz şifre!');
+                }
+            }
+        });
+
+        // Format time helper
+        function formatTime(timestamp) {
+            return new Date(timestamp).toLocaleTimeString('tr-TR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus on terms accept button initially
+            console.log('ByLock Chat initialized');
+        });
+    </script>
+</body>
+</html>
