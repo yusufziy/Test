@@ -1,151 +1,886 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#000000" />
-        <meta name="description" content="A product of emergent.sh" />
-        <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-        <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ByLock Özel Sohbet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-        <title>Emergent | Fullstack App</title>
-    </head>
-    <body>
-        <noscript>You need to enable JavaScript to run this app.</noscript>
-        <div id="root"></div>
-        <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            height: 100vh;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            color: #ffffff;
+            overflow: hidden;
+        }
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+        .app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-        <a
-            id="emergent-badge"
-            target="_blank"
-            href="https://app.emergent.sh/?utm_source=emergent-badge"
-            style="
-                display: flex !important;
-                align-items: center !important;
-                position: fixed !important;
-                bottom: 20px;
-                right: 20px;
-                text-decoration: none;
-                padding: 6px 10px;
-                font-family: -apple-system, BlinkMacSystemFont,
-                    &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell,
-                    &quot;Open Sans&quot;, &quot;Helvetica Neue&quot;,
-                    sans-serif !important;
-                font-size: 12px !important;
-                z-index: 9999 !important;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-                border-radius: 8px !important;
-                background-color: #ffffff !important;
-                border: 1px solid rgba(255, 255, 255, 0.25) !important;
-            "
-        >
-            <div
-                style="display: flex; flex-direction: row; align-items: center"
-            >
-                <img
-                    style="width: 20px; height: 20px; margin-right: 8px"
-                    src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4"
-                />
-                <p
-                    style="
-                        color: #000000;
-                        font-family: -apple-system, BlinkMacSystemFont,
-                            &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu,
-                            Cantarell, &quot;Open Sans&quot;,
-                            &quot;Helvetica Neue&quot;, sans-serif !important;
-                        font-size: 12px !important;
-                        align-items: center;
-                        margin-bottom: 0;
-                    "
-                >
-                    Made with Emergent
-                </p>
+        /* Terms Screen */
+        .terms-container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .terms-card {
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid #333;
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .terms-card h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+            background: linear-gradient(45deg, #dc143c, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .terms-card h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #dc143c;
+        }
+
+        .terms-content {
+            margin-bottom: 30px;
+            line-height: 1.6;
+            text-align: left;
+        }
+
+        .terms-content h3 {
+            color: #dc143c;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .terms-content p {
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .accept-btn {
+            background: linear-gradient(45deg, #dc143c, #ff1744);
+            color: #fff;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .accept-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(220, 20, 60, 0.3);
+        }
+
+        /* Username Screen */
+        .username-container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .username-card {
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid #333;
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            min-width: 300px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .username-card h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #dc143c, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .username-card h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #dc143c;
+        }
+
+        .username-card p {
+            opacity: 0.8;
+            margin-bottom: 30px;
+            color: #ccc;
+        }
+
+        .username-input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 25px;
+            border: 1px solid #444;
+            background: #2d2d2d;
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        .username-input::placeholder {
+            color: #888;
+        }
+
+        .join-btn, .cancel-btn {
+            background: linear-gradient(45deg, #dc143c, #ff1744);
+            color: #fff;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .cancel-btn {
+            background: #666;
+        }
+
+        .join-btn:hover, .cancel-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(220, 20, 60, 0.3);
+        }
+
+        /* Chat Interface */
+        .chat-header {
+            background: linear-gradient(90deg, #1a1a1a, #2d2d2d);
+            border-bottom: 1px solid #333;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #dc143c, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .connection-status {
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            background: rgba(45, 45, 45, 0.8);
+        }
+
+        .connection-status.connected {
+            color: #4ade80;
+        }
+
+        .connection-status.disconnected {
+            color: #ef4444;
+        }
+
+        .admin-badge {
+            background: linear-gradient(45deg, #dc143c, #ff1744);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            animation: adminPulse 2s infinite;
+        }
+
+        @keyframes adminPulse {
+            0%, 100% { 
+                box-shadow: 0 2px 8px rgba(220, 20, 60, 0.3); 
+            }
+            50% { 
+                box-shadow: 0 4px 15px rgba(220, 20, 60, 0.6); 
+            }
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 20px 20px;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            background: rgba(26, 26, 26, 0.9);
+            border: 1px solid #333;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            background: rgba(45, 45, 45, 0.8);
+            border-left: 3px solid #666;
+            animation: messageSlide 0.3s ease-out;
+        }
+
+        .admin-message {
+            background: rgba(70, 20, 20, 0.8);
+            border-left: 3px solid #dc143c;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .username {
+            font-weight: bold;
+            color: #dc143c;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .admin-tag {
+            background: linear-gradient(45deg, #dc143c, #ff1744);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .timestamp {
+            font-size: 12px;
+            opacity: 0.6;
+            color: #999;
+        }
+
+        .message-content {
+            font-size: 16px;
+            line-height: 1.4;
+            color: #f0f0f0;
+            word-wrap: break-word;
+        }
+
+        .message-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 15px 20px;
+            border-radius: 25px;
+            border: 1px solid #444;
+            background: #2d2d2d;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            min-width: 200px;
+        }
+
+        .message-input::placeholder {
+            color: #888;
+        }
+
+        .send-btn {
+            background: linear-gradient(45deg, #dc143c, #ff1744);
+            color: #fff;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            min-width: 80px;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #666;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .no-messages {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .admin-hint {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(45, 45, 45, 0.5);
+            border-radius: 10px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .chat-header {
+                padding: 10px 15px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .chat-header h1 {
+                font-size: 20px;
+            }
+
+            .chat-container {
+                padding: 0 10px 10px;
+            }
+
+            .message-form {
+                flex-direction: column;
+            }
+
+            .send-btn {
+                width: 100%;
+            }
+
+            .username-card {
+                padding: 20px;
+                margin: 0 10px;
+            }
+
+            .terms-card {
+                padding: 20px;
+                margin: 0 10px;
+            }
+
+            .message {
+                padding: 12px;
+            }
+
+            .message-input {
+                min-width: auto;
+            }
+        }
+
+        /* Scrollbar */
+        .messages-container::-webkit-scrollbar,
+        .terms-card::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar-track,
+        .terms-card::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb,
+        .terms-card::-webkit-scrollbar-thumb {
+            background: rgba(220, 20, 60, 0.5);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Terms Screen -->
+        <div id="termsScreen" class="terms-container">
+            <div class="terms-card">
+                <h1>ByLock Özel Sohbet</h1>
+                <h2>Kullanım Şartları ve Gizlilik Sözleşmesi</h2>
+                <div class="terms-content">
+                    <h3>1. Kullanım Şartları</h3>
+                    <p>• Bu platform özel ve güvenli mesajlaşma için tasarlanmıştır.</p>
+                    <p>• Tüm mesajlar şifrelenir ve güvenli bir şekilde saklanır.</p>
+                    <p>• Yasa dışı, zararlı veya rahatsız edici içerik paylaşmak yasaktır.</p>
+                    <p>• Platform yöneticileri güvenlik amacıyla mesajları inceleyebilir.</p>
+                    
+                    <h3>2. Gizlilik Politikası</h3>
+                    <p>• Kişisel bilgileriniz üçüncü şahıslarla paylaşılmaz.</p>
+                    <p>• Mesajlarınız sadece güvenlik ve denetim amacıyla erişilebilir.</p>
+                    <p>• IP adresi ve bağlantı logları güvenlik amacıyla tutulur.</p>
+                    
+                    <h3>3. Sorumluluklar</h3>
+                    <p>• Paylaştığınız içerikten tamamen siz sorumlusunuz.</p>
+                    <p>• Platform yönetimi uygunsuz davranışlar için hesap kapatma hakkını saklı tutar.</p>
+                    <p>• Teknik arızalardan dolayı oluşabilecek kayıplardan sorumluluk kabul edilmez.</p>
+                </div>
+                <button class="accept-btn" onclick="acceptTerms()">
+                    Kabul Ediyorum ve Sohbete Devam Et
+                </button>
             </div>
-        </a>
-        <script>
-            !(function (t, e) {
-                var o, n, p, r;
-                e.__SV ||
-                    ((window.posthog = e),
-                    (e._i = []),
-                    (e.init = function (i, s, a) {
-                        function g(t, e) {
-                            var o = e.split(".");
-                            2 == o.length && ((t = t[o[0]]), (e = o[1])),
-                                (t[e] = function () {
-                                    t.push(
-                                        [e].concat(
-                                            Array.prototype.slice.call(
-                                                arguments,
-                                                0,
-                                            ),
-                                        ),
-                                    );
-                                });
+        </div>
+
+        <!-- Username Screen -->
+        <div id="usernameScreen" class="username-container hidden">
+            <div class="username-card">
+                <h1>ByLock Özel Sohbet</h1>
+                <p>Güvenli sohbete katılmak için kullanıcı adınızı girin</p>
+                <form onsubmit="setUsername(event)">
+                    <input 
+                        type="text" 
+                        id="usernameInput" 
+                        placeholder="Kullanıcı adınızı girin..." 
+                        class="username-input"
+                        required
+                    >
+                    <button type="submit" class="join-btn">Sohbete Katıl</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin Login Screen -->
+        <div id="adminLoginScreen" class="username-container hidden">
+            <div class="username-card">
+                <h2>Yönetici Girişi</h2>
+                <p>Yönetici şifresini girin</p>
+                <form onsubmit="adminLogin(event)">
+                    <input 
+                        type="password" 
+                        id="adminPasswordInput" 
+                        placeholder="Yönetici şifresi..." 
+                        class="username-input"
+                        required
+                    >
+                    <button type="submit" class="join-btn">Giriş Yap</button>
+                    <button type="button" class="cancel-btn" onclick="cancelAdminLogin()">İptal</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div id="chatScreen" class="hidden">
+            <div class="chat-header">
+                <h1>ByLock Özel Sohbet</h1>
+                <div class="header-controls">
+                    <span id="connectionStatus" class="connection-status connected">
+                        🟢 Bağlı
+                    </span>
+                    <span id="adminBadge" class="admin-badge hidden">YÖNETİCİ MODU</span>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <div id="messagesContainer" class="messages-container">
+                    <div class="no-messages">
+                        Henüz mesaj yok. İlk mesajı siz gönderin!
+                    </div>
+                </div>
+
+                <form class="message-form" onsubmit="sendMessage(event)">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        placeholder="Mesajınızı yazın..." 
+                        class="message-input"
+                        required
+                    >
+                    <button type="submit" class="send-btn" id="sendBtn">Gönder</button>
+                </form>
+                
+                <div class="admin-hint">
+                    💡 İpucu: Admin modu için sohbette "bylockgorkem" yazın
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // BACKEND URL'İNİ BURAYA YAZIN - Kendi sunucunuz için değiştirin
+        const BACKEND_URL = 'https://your-server.com'; // Bu kısmı kendi backend adresinizle değiştirin
+        const API = `${BACKEND_URL}/api`;
+        const WS_URL = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://');
+
+        // Global variables
+        let currentUsername = '';
+        let websocket = null;
+        let isConnected = false;
+        let isAdmin = false;
+        let messages = [];
+        let pollInterval = null;
+
+        // Accept terms and show username screen
+        function acceptTerms() {
+            document.getElementById('termsScreen').classList.add('hidden');
+            document.getElementById('usernameScreen').classList.remove('hidden');
+            document.getElementById('usernameInput').focus();
+        }
+
+        // Set username and start chat
+        function setUsername(event) {
+            event.preventDefault();
+            const username = document.getElementById('usernameInput').value.trim();
+            
+            if (username) {
+                currentUsername = username;
+                document.getElementById('usernameScreen').classList.add('hidden');
+                document.getElementById('chatScreen').classList.remove('hidden');
+                
+                loadMessages();
+                setupConnection();
+                document.getElementById('messageInput').focus();
+            }
+        }
+
+        // Load existing messages
+        async function loadMessages() {
+            try {
+                const response = await fetch(`${API}/messages`);
+                if (response.ok) {
+                    const data = await response.json();
+                    messages = data;
+                    renderMessages();
+                }
+            } catch (error) {
+                console.log('Backend bağlantı hatası - Demo mode aktif');
+                loadDemoMessages();
+            }
+        }
+
+        // Demo messages for local testing
+        function loadDemoMessages() {
+            messages = [
+                {
+                    id: '1',
+                    username: 'Demo',
+                    content: 'Hoş geldiniz! Bu demo modunda çalışıyor.',
+                    timestamp: new Date().toISOString(),
+                    is_admin: false
+                }
+            ];
+            renderMessages();
+        }
+
+        // Setup connection (WebSocket or polling)
+        function setupConnection() {
+            try {
+                websocket = new WebSocket(`${WS_URL}/ws/${currentUsername}`);
+                
+                websocket.onopen = () => {
+                    isConnected = true;
+                    updateConnectionStatus();
+                    console.log('WebSocket bağlandı');
+                };
+
+                websocket.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.type === 'new_message') {
+                            if (!messages.find(msg => msg.id === data.data.id)) {
+                                messages.push(data.data);
+                                renderMessages();
+                            }
+                        } else if (data.type === 'message_deleted') {
+                            messages = messages.filter(msg => msg.id !== data.data.message_id);
+                            renderMessages();
                         }
-                        ((p = t.createElement("script")).type =
-                            "text/javascript"),
-                            (p.crossOrigin = "anonymous"),
-                            (p.async = !0),
-                            (p.src =
-                                s.api_host.replace(
-                                    ".i.posthog.com",
-                                    "-assets.i.posthog.com",
-                                ) + "/static/array.js"),
-                            (r =
-                                t.getElementsByTagName(
-                                    "script",
-                                )[0]).parentNode.insertBefore(p, r);
-                        var u = e;
-                        for (
-                            void 0 !== a ? (u = e[a] = []) : (a = "posthog"),
-                                u.people = u.people || [],
-                                u.toString = function (t) {
-                                    var e = "posthog";
-                                    return (
-                                        "posthog" !== a && (e += "." + a),
-                                        t || (e += " (stub)"),
-                                        e
-                                    );
-                                },
-                                u.people.toString = function () {
-                                    return u.toString(1) + ".people (stub)";
-                                },
-                                o =
-                                    "init me ws ys ps bs capture je Di ks register register_once register_for_session unregister unregister_for_session Ps getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty Es $s createPersonProfile Is opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing Ss debug xs getPageViewId captureTraceFeedback captureTraceMetric".split(
-                                        " ",
-                                    ),
-                                n = 0;
-                            n < o.length;
-                            n++
-                        )
-                            g(u, o[n]);
-                        e._i.push([i, s, a]);
-                    }),
-                    (e.__SV = 1));
-            })(document, window.posthog || []);
-            posthog.init("phc_yJW1VjHGGwmCbbrtczfqqNxgBDbhlhOWcdzcIJEOTFE", {
-                api_host: "https://us.i.posthog.com",
-                person_profiles: "identified_only", // or 'always' to create profiles for anonymous users as well
-            });
-        </script>
-    </body>
+                    } catch (error) {
+                        console.error('WebSocket mesaj hatası:', error);
+                    }
+                };
+
+                websocket.onclose = () => {
+                    isConnected = false;
+                    updateConnectionStatus();
+                    console.log('WebSocket bağlantısı kesildi - Polling moduna geçiliyor');
+                    startPolling();
+                };
+
+                websocket.onerror = (error) => {
+                    console.log('WebSocket hatası - Polling moduna geçiliyor');
+                    isConnected = false;
+                    updateConnectionStatus();
+                    startPolling();
+                };
+            } catch (error) {
+                console.log('WebSocket desteklenmiyor - Polling mode');
+                startPolling();
+            }
+        }
+
+        // Polling for real-time updates
+        function startPolling() {
+            isConnected = true; // UI için bağlı göster
+            updateConnectionStatus();
+            
+            pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API}/messages`);
+                    if (response.ok) {
+                        const newMessages = await response.json();
+                        if (JSON.stringify(newMessages) !== JSON.stringify(messages)) {
+                            messages = newMessages;
+                            renderMessages();
+                        }
+                    }
+                } catch (error) {
+                    // Backend yoksa demo mode devam et
+                    console.log('Polling hatası - demo mode devam ediyor');
+                }
+            }, 3000);
+        }
+
+        // Update connection status
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connectionStatus');
+            
+            if (isConnected) {
+                statusElement.className = 'connection-status connected';
+                statusElement.innerHTML = '🟢 Bağlı';
+            } else {
+                statusElement.className = 'connection-status disconnected';
+                statusElement.innerHTML = '🔴 Bağlantı Kopuk';
+            }
+        }
+
+        // Send message
+        async function sendMessage(event) {
+            event.preventDefault();
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (message) {
+                // Admin moduna geçiş için özel kontrol
+                if (message.toLowerCase() === 'bylockgorkem') {
+                    messageInput.value = '';
+                    isAdmin = true;
+                    document.getElementById('adminBadge').classList.remove('hidden');
+                    
+                    // Admin mesajı gönder
+                    const adminMessage = {
+                        id: Date.now().toString(),
+                        username: currentUsername,
+                        content: '🔐 Admin moduna geçildi!',
+                        timestamp: new Date().toISOString(),
+                        is_admin: true
+                    };
+                    messages.push(adminMessage);
+                    renderMessages();
+                    
+                    alert('Admin moduna geçildiniz! 🔥');
+                    return;
+                }
+
+                try {
+                    // Backend'e gönder
+                    const response = await fetch(`${API}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username: currentUsername,
+                            content: message,
+                            is_admin: isAdmin
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Backend hatası');
+                    }
+                    
+                    messageInput.value = '';
+                    
+                    // Mesajları yenile
+                    setTimeout(loadMessages, 500);
+                } catch (error) {
+                    // Backend yoksa local demo mesajı ekle
+                    console.log('Backend yok - demo mesajı ekleniyor');
+                    const newMessage = {
+                        id: Date.now().toString(),
+                        username: currentUsername,
+                        content: message,
+                        timestamp: new Date().toISOString(),
+                        is_admin: isAdmin
+                    };
+                    messages.push(newMessage);
+                    renderMessages();
+                    messageInput.value = '';
+                }
+            }
+        }
+
+        // Show admin login
+        function showAdminLogin() {
+            document.getElementById('chatScreen').classList.add('hidden');
+            document.getElementById('adminLoginScreen').classList.remove('hidden');
+            document.getElementById('adminPasswordInput').focus();
+        }
+
+        // Admin login
+        function adminLogin(event) {
+            event.preventDefault();
+            const password = document.getElementById('adminPasswordInput').value;
+            
+            if (password === 'bylockgorkem') {
+                isAdmin = true;
+                document.getElementById('adminBadge').classList.remove('hidden');
+                document.getElementById('adminLoginScreen').classList.add('hidden');
+                document.getElementById('chatScreen').classList.remove('hidden');
+                document.getElementById('adminPasswordInput').value = '';
+                
+                // Admin mesajı gönder
+                const adminMessage = {
+                    id: Date.now().toString(),
+                    username: currentUsername,
+                    content: 'Admin moduna geçildi!',
+                    timestamp: new Date().toISOString(),
+                    is_admin: true
+                };
+                messages.push(adminMessage);
+                renderMessages();
+                
+                alert('Admin moduna geçildi!');
+            } else {
+                alert('Geçersiz şifre!');
+                document.getElementById('adminPasswordInput').value = '';
+            }
+        }
+
+        // Cancel admin login
+        function cancelAdminLogin() {
+            document.getElementById('adminLoginScreen').classList.add('hidden');
+            document.getElementById('chatScreen').classList.remove('hidden');
+            document.getElementById('adminPasswordInput').value = '';
+        }
+
+        // Render messages
+        function renderMessages() {
+            const container = document.getElementById('messagesContainer');
+            
+            if (messages.length === 0) {
+                container.innerHTML = '<div class="no-messages">Henüz mesaj yok. İlk mesajı siz gönderin!</div>';
+                return;
+            }
+            
+            const messagesHTML = messages.map(message => {
+                const timestamp = new Date(message.timestamp).toLocaleTimeString('tr-TR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const adminTag = message.is_admin ? '<span class="admin-tag">YÖNETİCİ</span>' : '';
+                const messageClass = message.is_admin ? 'message admin-message' : 'message';
+                
+                return `
+                    <div class="${messageClass}">
+                        <div class="message-header">
+                            <span class="username">
+                                ${message.username}${adminTag}
+                            </span>
+                            <span class="timestamp">${timestamp}</span>
+                        </div>
+                        <div class="message-content">${escapeHtml(message.content)}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = messagesHTML;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // HTML escape function
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // PC için Ctrl+Shift+A
+            if (event.ctrlKey && event.shiftKey && event.key === 'A') {
+                if (document.getElementById('chatScreen').classList.contains('hidden') === false) {
+                    showAdminLogin();
+                }
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('ByLock Chat başlatıldı');
+            
+            // Mobile detection for better UX
+            if (window.innerWidth <= 768) {
+                console.log('Mobil cihaz tespit edildi');
+            }
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (websocket) {
+                websocket.close();
+            }
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+        });
+    </script>
+</body>
 </html>
