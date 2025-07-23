@@ -18,6 +18,86 @@ body {
   color: #ffffff;
 }
 
+/* Terms Screen */
+.terms-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+  padding: 20px;
+}
+
+.terms-card {
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid #333;
+  padding: 30px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  text-align: left;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.terms-card h1 {
+  font-size: 28px;
+  margin-bottom: 10px;
+  text-align: center;
+  background: linear-gradient(45deg, #dc143c, #ff6b6b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.terms-card h2 {
+  font-size: 18px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #dc143c;
+}
+
+.terms-content {
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.terms-content h3 {
+  color: #dc143c;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.terms-content p {
+  margin-bottom: 8px;
+  color: #ccc;
+  font-size: 14px;
+}
+
+.terms-actions {
+  text-align: center;
+}
+
+.accept-btn {
+  background: linear-gradient(45deg, #dc143c, #ff1744);
+  color: #fff;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.accept-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(220, 20, 60, 0.3);
+}
+
 /* Header */
 .chat-header {
   background: linear-gradient(90deg, #1a1a1a, #2d2d2d);
@@ -61,6 +141,11 @@ body {
 
 .connection-status.disconnected {
   color: #ef4444;
+}
+
+.retry-info {
+  font-size: 12px;
+  color: #fbbf24;
 }
 
 .admin-badge {
@@ -207,6 +292,13 @@ body {
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
+.no-messages {
+  text-align: center;
+  padding: 40px;
+  color: #888;
+  font-style: italic;
+}
+
 /* Messages */
 .message {
   margin-bottom: 15px;
@@ -332,6 +424,11 @@ body {
   box-shadow: 0 0 15px rgba(220, 20, 60, 0.3);
 }
 
+.message-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .message-input::placeholder {
   color: #888;
 }
@@ -370,27 +467,42 @@ body {
   border: 1px solid rgba(220, 20, 60, 0.2);
 }
 
+.connection-warning {
+  text-align: center;
+  color: #fbbf24;
+  font-size: 12px;
+  margin-top: 5px;
+  padding: 5px;
+  background: rgba(251, 191, 36, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
 /* Scrollbar Styling */
-.messages-container::-webkit-scrollbar {
+.messages-container::-webkit-scrollbar,
+.terms-card::-webkit-scrollbar {
   width: 8px;
 }
 
-.messages-container::-webkit-scrollbar-track {
+.messages-container::-webkit-scrollbar-track,
+.terms-card::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.messages-container::-webkit-scrollbar-thumb {
+.messages-container::-webkit-scrollbar-thumb,
+.terms-card::-webkit-scrollbar-thumb {
   background: rgba(220, 20, 60, 0.5);
   border-radius: 4px;
 }
 
-.messages-container::-webkit-scrollbar-thumb:hover {
+.messages-container::-webkit-scrollbar-thumb:hover,
+.terms-card::-webkit-scrollbar-thumb:hover {
   background: rgba(220, 20, 60, 0.7);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .username-card {
+  .username-card, .terms-card {
     min-width: 300px;
     padding: 30px;
   }
@@ -407,6 +519,7 @@ body {
   
   .header-controls {
     gap: 10px;
+    flex-wrap: wrap;
   }
   
   .chat-container {
@@ -426,8 +539,16 @@ body {
     padding: 12px;
   }
   
-  .username-card h1 {
+  .username-card h1, .terms-card h1 {
     font-size: 28px;
+  }
+  
+  .terms-container {
+    padding: 10px;
+  }
+  
+  .terms-card {
+    max-height: 90vh;
   }
 }
 
@@ -438,17 +559,4 @@ body {
 
 .message-sending {
   opacity: 0.5;
-}
-
-/* Security notice */
-.security-notice {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #666;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 10px;
-  z-index: 1000;
 }

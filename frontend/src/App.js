@@ -7,6 +7,7 @@ const API = `${BACKEND_URL}/api`;
 const WS_URL = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://');
 
 function App() {
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [username, setUsername] = useState('');
   const [isUsernameSet, setIsUsernameSet] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -15,26 +16,33 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [connectionRetries, setConnectionRetries] = useState(0);
   
   const websocket = useRef(null);
   const messagesEndRef = useRef(null);
+  const reconnectTimer = useRef(null);
 
   // Load messages on component mount
   useEffect(() => {
-    loadMessages();
-  }, []);
+    if (isUsernameSet) {
+      loadMessages();
+    }
+  }, [isUsernameSet]);
 
   // Setup WebSocket connection when username is set
   useEffect(() => {
-    if (isUsernameSet && username) {
+    if (isUsernameSet && username && acceptedTerms) {
       setupWebSocket();
     }
     return () => {
       if (websocket.current) {
         websocket.current.close();
       }
+      if (reconnectTimer.current) {
+        clearTimeout(reconnectTimer.current);
+      }
     };
-  }, [isUsernameSet, username]);
+  }, [isUsernameSet, username, acceptedTerms]);
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -47,7 +55,9 @@ function App() {
 
   const loadMessages = async () => {
     try {
+      console.log('Loading messages...');
       const response = await axios.get(`${API}/messages`);
+      console.log('Messages loaded:', response.data);
       setMessages(response.data);
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -55,37 +65,63 @@ function App() {
   };
 
   const setupWebSocket = () => {
-    websocket.current = new WebSocket(`${WS_URL}/ws/${username}`);
-    
-    websocket.current.onopen = () => {
-      setIsConnected(true);
-      console.log('WebSocket connected');
-    };
+    try {
+      console.log(`Connecting to WebSocket: ${WS_URL}/ws/${username}`);
+      websocket.current = new WebSocket(`${WS_URL}/ws/${username}`);
+      
+      websocket.current.onopen = () => {
+        setIsConnected(true);
+        setConnectionRetries(0);
+        console.log('WebSocket connected successfully');
+      };
 
-    websocket.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'new_message') {
-        setMessages(prev => [...prev, data.data]);
-      } else if (data.type === 'message_deleted') {
-        setMessages(prev => prev.filter(msg => msg.id !== data.data.message_id));
-      }
-    };
-
-    websocket.current.onclose = () => {
-      setIsConnected(false);
-      console.log('WebSocket disconnected');
-      // Auto-reconnect after 3 seconds
-      setTimeout(() => {
-        if (isUsernameSet && username) {
-          setupWebSocket();
+      websocket.current.onmessage = (event) => {
+        try {
+          console.log('WebSocket message received:', event.data);
+          const data = JSON.parse(event.data);
+          if (data.type === 'new_message') {
+            setMessages(prev => {
+              // Check if message already exists to prevent duplicates
+              if (prev.find(msg => msg.id === data.data.id)) {
+                return prev;
+              }
+              return [...prev, data.data];
+            });
+          } else if (data.type === 'message_deleted') {
+            setMessages(prev => prev.filter(msg => msg.id !== data.data.message_id));
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
         }
-      }, 3000);
-    };
+      };
 
-    websocket.current.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      websocket.current.onclose = (event) => {
+        setIsConnected(false);
+        console.log('WebSocket disconnected:', event.code, event.reason);
+        
+        // Auto-reconnect with exponential backoff
+        if (connectionRetries < 5) {
+          const delay = Math.pow(2, connectionRetries) * 1000; // 1s, 2s, 4s, 8s, 16s
+          console.log(`Reconnecting in ${delay}ms...`);
+          reconnectTimer.current = setTimeout(() => {
+            setConnectionRetries(prev => prev + 1);
+            setupWebSocket();
+          }, delay);
+        }
+      };
+
+      websocket.current.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        setIsConnected(false);
+      };
+    } catch (error) {
+      console.error('Error setting up WebSocket:', error);
       setIsConnected(false);
-    };
+    }
+  };
+
+  const handleTermsAccept = () => {
+    setAcceptedTerms(true);
   };
 
   const handleUsernameSubmit = (e) => {
@@ -97,17 +133,22 @@ function App() {
 
   const handleMessageSubmit = async (e) => {
     e.preventDefault();
-    if (newMessage.trim()) {
+    if (newMessage.trim() && isConnected) {
       try {
-        await axios.post(`${API}/messages`, {
+        console.log('Sending message:', newMessage);
+        const response = await axios.post(`${API}/messages`, {
           username: username,
           content: newMessage,
           is_admin: isAdmin
         });
+        console.log('Message sent successfully:', response.data);
         setNewMessage('');
       } catch (error) {
         console.error('Error sending message:', error);
+        alert('Mesaj gönderilirken hata oluştu. Lütfen tekrar deneyin.');
       }
+    } else if (!isConnected) {
+      alert('Bağlantı kopuk. Lütfen bekleyin...');
     }
   };
 
@@ -124,23 +165,24 @@ function App() {
         setAdminPassword('');
       }
     } catch (error) {
-      alert('Invalid admin credentials');
+      alert('Geçersiz yönetici bilgileri');
       console.error('Admin login error:', error);
     }
   };
 
   const deleteMessage = async (messageId) => {
-    if (window.confirm('Are you sure you want to delete this message?')) {
+    if (window.confirm('Bu mesajı silmek istediğinizden emin misiniz?')) {
       try {
         await axios.delete(`${API}/admin/messages/${messageId}`);
       } catch (error) {
         console.error('Error deleting message:', error);
+        alert('Mesaj silinirken hata oluştu.');
       }
     }
   };
 
   const formatTime = (timestamp) => {
-    return new Date(timestamp).toLocaleTimeString('en-US', {
+    return new Date(timestamp).toLocaleTimeString('tr-TR', {
       hour: '2-digit',
       minute: '2-digit'
     });
@@ -160,25 +202,61 @@ function App() {
     };
   }, []);
 
+  // Terms acceptance screen
+  if (!acceptedTerms) {
+    return (
+      <div className="app">
+        <div className="terms-container">
+          <div className="terms-card">
+            <h1>ByLock Özel Sohbet</h1>
+            <h2>Kullanım Şartları ve Gizlilik Sözleşmesi</h2>
+            <div className="terms-content">
+              <h3>1. Kullanım Şartları</h3>
+              <p>• Bu platform özel ve güvenli mesajlaşma için tasarlanmıştır.</p>
+              <p>• Tüm mesajlar şifrelenir ve güvenli bir şekilde saklanır.</p>
+              <p>• Yasa dışı, zararlı veya rahatsız edici içerik paylaşmak yasaktır.</p>
+              <p>• Platform yöneticileri güvenlik amacıyla mesajları inceleyebilir.</p>
+              
+              <h3>2. Gizlilik Politikası</h3>
+              <p>• Kişisel bilgileriniz üçüncü şahıslarla paylaşılmaz.</p>
+              <p>• Mesajlarınız sadece güvenlik ve denetim amacıyla erişilebilir.</p>
+              <p>• IP adresi ve bağlantı logları güvenlik amacıyla tutulur.</p>
+              
+              <h3>3. Sorumluluklar</h3>
+              <p>• Paylaştığınız içerikten tamamen siz sorumlusunuz.</p>
+              <p>• Platform yönetimi uygunsuz davranışlar için hesap kapatma hakkını saklı tutar.</p>
+              <p>• Teknik arızalardan dolayı oluşabilecek kayıplardan sorumluluk kabul edilmez.</p>
+            </div>
+            <div className="terms-actions">
+              <button onClick={handleTermsAccept} className="accept-btn">
+                Kabul Ediyorum ve Sohbete Devam Et
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Username entry screen
   if (!isUsernameSet) {
     return (
       <div className="app">
         <div className="username-container">
           <div className="username-card">
-            <h1>ByLock Private Chat</h1>
-            <p>Enter your username to join the secure chat</p>
+            <h1>ByLock Özel Sohbet</h1>
+            <p>Güvenli sohbete katılmak için kullanıcı adınızı girin</p>
             <form onSubmit={handleUsernameSubmit}>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username..."
+                placeholder="Kullanıcı adınızı girin..."
                 className="username-input"
                 autoFocus
               />
               <button type="submit" className="join-btn">
-                Join Chat
+                Sohbete Katıl
               </button>
             </form>
           </div>
@@ -193,26 +271,26 @@ function App() {
       <div className="app">
         <div className="username-container">
           <div className="username-card">
-            <h2>Admin Access</h2>
-            <p>Enter admin password</p>
+            <h2>Yönetici Girişi</h2>
+            <p>Yönetici şifresini girin</p>
             <form onSubmit={handleAdminLogin}>
               <input
                 type="password"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                placeholder="Admin password..."
+                placeholder="Yönetici şifresi..."
                 className="username-input"
                 autoFocus
               />
               <button type="submit" className="join-btn">
-                Login
+                Giriş Yap
               </button>
               <button 
                 type="button" 
                 onClick={() => setShowAdminLogin(false)}
                 className="cancel-btn"
               >
-                Cancel
+                İptal
               </button>
             </form>
           </div>
@@ -226,13 +304,16 @@ function App() {
     <div className="app">
       {/* Header */}
       <div className="chat-header">
-        <h1>ByLock Private Chat</h1>
+        <h1>ByLock Özel Sohbet</h1>
         <div className="header-controls">
           <span className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
-            {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
+            {isConnected ? '🟢 Bağlı' : '🔴 Bağlantı Kopuk'}
+            {!isConnected && connectionRetries > 0 && (
+              <span className="retry-info"> (Yeniden bağlanıyor... {connectionRetries}/5)</span>
+            )}
           </span>
           {isAdmin && (
-            <span className="admin-badge">ADMIN MODE</span>
+            <span className="admin-badge">YÖNETİCİ MODU</span>
           )}
         </div>
       </div>
@@ -240,26 +321,33 @@ function App() {
       {/* Chat Messages */}
       <div className="chat-container">
         <div className="messages-container">
-          {messages.map((message) => (
-            <div key={message.id} className={`message ${message.is_admin ? 'admin-message' : ''}`}>
-              <div className="message-header">
-                <span className="username">
-                  {message.username}
-                  {message.is_admin && <span className="admin-tag">ADMIN</span>}
-                </span>
-                <span className="timestamp">{formatTime(message.timestamp)}</span>
-                {isAdmin && (
-                  <button 
-                    onClick={() => deleteMessage(message.id)}
-                    className="delete-btn"
-                  >
-                    🗑️
-                  </button>
-                )}
-              </div>
-              <div className="message-content">{message.content}</div>
+          {messages.length === 0 ? (
+            <div className="no-messages">
+              <p>Henüz mesaj yok. İlk mesajı siz gönderin!</p>
             </div>
-          ))}
+          ) : (
+            messages.map((message) => (
+              <div key={message.id} className={`message ${message.is_admin ? 'admin-message' : ''}`}>
+                <div className="message-header">
+                  <span className="username">
+                    {message.username}
+                    {message.is_admin && <span className="admin-tag">YÖNETİCİ</span>}
+                  </span>
+                  <span className="timestamp">{formatTime(message.timestamp)}</span>
+                  {isAdmin && (
+                    <button 
+                      onClick={() => deleteMessage(message.id)}
+                      className="delete-btn"
+                      title="Mesajı sil"
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </div>
+                <div className="message-content">{message.content}</div>
+              </div>
+            ))
+          )}
           <div ref={messagesEndRef} />
         </div>
 
@@ -270,7 +358,7 @@ function App() {
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type your message..."
+              placeholder="Mesajınızı yazın..."
               className="message-input"
               disabled={!isConnected}
             />
@@ -279,12 +367,17 @@ function App() {
               className="send-btn"
               disabled={!isConnected || !newMessage.trim()}
             >
-              Send
+              Gönder
             </button>
           </form>
           {isAdmin && (
             <div className="admin-info">
-              <small>🔑 Admin Mode: Your messages are tagged as ADMIN</small>
+              <small>🔑 Yönetici Modu: Mesajlarınız YÖNETİCİ olarak etiketlenir</small>
+            </div>
+          )}
+          {!isConnected && (
+            <div className="connection-warning">
+              <small>⚠️ Bağlantı kopuk - Mesaj gönderemiyor ve otomatik yeniden bağlanmaya çalışıyor...</small>
             </div>
           )}
         </div>
